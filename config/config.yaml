@@ -1,5 +1,5 @@
 #Define here the data repository
-PathToData : "/srv/nfs/ngs-stockage/NGS_Virologie/HadrienR/DATASET/"
+RESULTpath : "/srv/nfs/ngs-stockage/NGS_Virologie/HadrienR/DATASET/"
 
 #Define here the data repository. Snakemake will create result files here
 BARCODEpath : "/srv/nfs/ngs-stockage/NGS_Virologie/HadrienR/RESULTS/"
