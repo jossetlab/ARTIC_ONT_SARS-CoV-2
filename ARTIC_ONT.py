@@ -27,7 +27,7 @@ for BC in barcode_list:
 rule pipeline_output:
     input:
         #filter_fastq = expand(results_path+"FILTER/{barcode}/merged.fastq"  ,barcode=BARCODE),
-        results = expand(results_path+"RESULTS/{barcode}.consensus.fasta",barcode=BARCODE),
+        results = expand(results_path+"RESULTS/{barcode}/{barcode}.consensus.fasta",barcode=BARCODE),
 
 rule filter:
     message:
@@ -46,13 +46,14 @@ rule articONT:
     input:
         filter_fastq = rules.filter.output.filter_fastq
     output:
-        results = results_path+"RESULTS/{barcode}.consensus.fasta"
-    threads: 4
+        results = results_path+"RESULTS/{barcode}/{barcode}.consensus.fasta"
+    threads: 8
     shell:
         """
+        mkdir -p {results_path}RESULTS/{wildcards.barcode}/
         artic minion --normalise 200 --threads {threads} --scheme-directory ~/artic-ncov2019/primer_schemes \
             --read-file {input.filter_fastq} \
             --fast5-directory {FAST5path} \
             --sequencing-summary {SEQSUM_file} \
-            nCoV-2019/V3 {results_path}RESULTS/{barcode}
+            nCoV-2019/V3 {results_path}RESULTS/{wildcards.barcode}/{wildcards.barcode}
         """
