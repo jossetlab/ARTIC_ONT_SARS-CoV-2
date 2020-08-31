@@ -27,7 +27,9 @@ for BC in barcode_list:
 rule pipeline_output:
     input:
         #filter_fastq = expand(results_path+"FILTER/{barcode}/merged.fastq"  ,barcode=BARCODE),
-        results = expand(results_path+"RESULTS/{barcode}/{barcode}.consensus.fasta",barcode=BARCODE),
+        #results = expand(results_path+"RESULTS/{barcode}/{barcode}.consensus.fasta",barcode=BARCODE),
+        sumSEQ = results_path+"RESULTS/articONT_allseq.fasta"
+
 
 rule filter:
     message:
@@ -57,3 +59,11 @@ rule articONT:
             --sequencing-summary {SEQSUM_file} \
             nCoV-2019/V3 {results_path}RESULTS/{wildcards.barcode}/{wildcards.barcode}
         """
+
+rule concatCONS:
+    input:
+        cons_seq = expand(rules.articONT.output.results,barcode=BARCODE)
+    output:
+        sumSEQ = results_path+"RESULTS/articONT_allseq.fasta"
+    shell:
+        "cat {input} > {output} "
