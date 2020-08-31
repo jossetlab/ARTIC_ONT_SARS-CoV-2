@@ -28,7 +28,10 @@ rule pipeline_output:
     input:
         #filter_fastq = expand(results_path+"FILTER/{barcode}/merged.fastq"  ,barcode=BARCODE),
         #results = expand(results_path+"RESULTS/{barcode}/{barcode}.consensus.fasta",barcode=BARCODE),
-        sumSEQ = results_path+"RESULTS/articONT_allseq.fasta"
+        sumSEQ = results_path+"RESULTS/articONT_allseq.fasta",
+        #covResults= expand(results_path+"COVERAGE/{barcode}.cov",barcode=BARCODE),
+        summcov = results_path+"COVERAGE/COV_summary.cov"
+
 
 
 rule filter:
@@ -48,7 +51,8 @@ rule articONT:
     input:
         filter_fastq = rules.filter.output.filter_fastq
     output:
-        results = results_path+"RESULTS/{barcode}/{barcode}.consensus.fasta"
+        results = results_path+"RESULTS/{barcode}/{barcode}.consensus.fasta",
+        #bam = results_path+"RESULTS/{barcode}/{barcode}.primertrimmed.rg.sorted.bam"
     threads: 8
     shell:
         """
@@ -59,6 +63,23 @@ rule articONT:
             --sequencing-summary {SEQSUM_file} \
             nCoV-2019/V3 {results_path}RESULTS/{wildcards.barcode}/{wildcards.barcode}
         """
+
+rule computeCOV:
+    input:
+        results = rules.articONT.output.results,
+        bam = results_path+"RESULTS/{barcode}/{barcode}.primertrimmed.rg.sorted.bam"
+    output:
+        covResults= temp(results_path+"COVERAGE/{barcode}.cov")
+    shell:
+        "bedtools genomecov -ibam {input.bam} -d -split | sed 's/$/\t{wildcards.barcode}\tONT/' > {output.covResults} "
+
+rule concatCOV:
+    input:
+        all_covR = expand(rules.computeCOV.output.covResults,barcode=BARCODE)
+    output:
+        summcov = results_path+"COVERAGE/COV_summary.cov"
+    shell:
+        "cat {input.all_covR} > {output.summcov} "
 
 rule concatCONS:
     input:
